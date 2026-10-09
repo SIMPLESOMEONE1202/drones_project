@@ -1,0 +1,17 @@
+- ros_topic_name: "/drone_2/imu"
+  gz_topic_name: "/drone_2/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/drone_2/odom"
+  gz_topic_name: "/drone_2/odom"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "gz.msgs.Odometry"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/drone_2/command/motor_speed"
+  gz_topic_name: "/drone_2/command/motor_speed"
+  ros_type_name: "actuator_msgs/msg/Actuators"
+  gz_type_name: "gz.msgs.Actuators"
+  direction: ROS_TO_GZ

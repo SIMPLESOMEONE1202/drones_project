@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="quadrotor" params="drone_name x y z">
+
+    <!-- ============ BODY ============ -->
+    <link name="${drone_name}/base_link">
+      <visual>
+        <geometry><box size="0.35 0.35 0.10"/></geometry>
+        <material name="body_grey"><color rgba="0.2 0.2 0.2 1"/></material>
+      </visual>
+      <collision>
+        <geometry><box size="0.35 0.35 0.10"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="1.5"/>
+        <inertia ixx="0.0298" ixy="0" ixz="0" iyy="0.0298" iyz="0" izz="0.0552"/>
+      </inertial>
+    </link>
+
+    <link name="${drone_name}/imu_link">
+      <inertial>
+        <mass value="0.01"/>
+        <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+      </inertial>
+    </link>
+    <joint name="${drone_name}/imu_joint" type="fixed">
+      <parent link="${drone_name}/base_link"/>
+      <child link="${drone_name}/imu_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <xacro:macro name="rotor" params="suffix xoff yoff spin_dir">
+      <link name="${drone_name}/rotor_${suffix}">
+        <visual>
+          <geometry><cylinder radius="0.10" length="0.01"/></geometry>
+          <material name="rotor_yellow"><color rgba="0.9 0.8 0.1 1"/></material>
+        </visual>
+        <collision>
+          <geometry><cylinder radius="0.10" length="0.01"/></geometry>
+        </collision>
+        <inertial>
+          <mass value="0.02"/>
+          <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="2e-5"/>
+        </inertial>
+      </link>
+      <joint name="${drone_name}/rotor_${suffix}_joint" type="continuous">
+        <parent link="${drone_name}/base_link"/>
+        <child link="${drone_name}/rotor_${suffix}"/>
+        <origin xyz="${xoff} ${yoff} 0.02" rpy="0 0 0"/>
+        <axis xyz="0 0 1"/>
+      </joint>
+    </xacro:macro>
+
+    <xacro:rotor suffix="0" xoff="0.20"  yoff="0.20"  spin_dir="1"/>
+    <xacro:rotor suffix="1" xoff="0.20"  yoff="-0.20" spin_dir="-1"/>
+    <xacro:rotor suffix="2" xoff="-0.20" yoff="-0.20" spin_dir="1"/>
+    <xacro:rotor suffix="3" xoff="-0.20" yoff="0.20"  spin_dir="-1"/>
+
+    <xacro:macro name="motor_model_plugin" params="suffix motor_number turning_direction">
+      <gazebo>
+        <plugin filename="gz-sim-multicopter-motor-model-system"
+                name="gz::sim::systems::MulticopterMotorModel">
+          <robotNamespace>${drone_name}</robotNamespace>
+          <jointName>${drone_name}/rotor_${suffix}_joint</jointName>
+          <linkName>${drone_name}/rotor_${suffix}</linkName>
+          <turningDirection>${turning_direction}</turningDirection>
+          <timeConstantUp>0.0125</timeConstantUp>
+          <timeConstantDown>0.025</timeConstantDown>
+          <maxRotVelocity>838</maxRotVelocity>
+          <motorConstant>8.54858e-06</motorConstant>
+          <momentConstant>0.06</momentConstant>
+          <commandSubTopic>command/motor_speed</commandSubTopic>
+          <motorNumber>${motor_number}</motorNumber>
+          <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+          <rollingMomentCoefficient>1e-6</rollingMomentCoefficient>
+          <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+          <motorType>velocity</motorType>
+        </plugin>
+      </gazebo>
+    </xacro:macro>
+
+    <xacro:motor_model_plugin suffix="0" motor_number="0" turning_direction="ccw"/>
+    <xacro:motor_model_plugin suffix="1" motor_number="1" turning_direction="cw"/>
+    <xacro:motor_model_plugin suffix="2" motor_number="2" turning_direction="ccw"/>
+    <xacro:motor_model_plugin suffix="3" motor_number="3" turning_direction="cw"/>
+
+    <gazebo reference="${drone_name}/imu_link">
+      <sensor name="${drone_name}_imu" type="imu">
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <topic>${drone_name}/imu</topic>
+        <pose>0 0 0 0 0 0</pose>
+      </sensor>
+    </gazebo>
+
+    <gazebo>
+      <plugin filename="gz-sim-odometry-publisher-system"
+              name="gz::sim::systems::OdometryPublisher">
+        <odom_frame>${drone_name}/odom</odom_frame>
+        <robot_base_frame>${drone_name}/base_link</robot_base_frame>
+        <odom_topic>${drone_name}/odom</odom_topic>
+        <odom_publish_frequency>50</odom_publish_frequency>
+        <dimensions>3</dimensions>
+      </plugin>
+    </gazebo>
+
+  </xacro:macro>
+</robot>

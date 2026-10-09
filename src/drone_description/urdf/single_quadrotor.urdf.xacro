@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<robot name="single_quadrotor" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="drone_name" default="drone_1"/>
+  <xacro:arg name="x" default="0.0"/>
+  <xacro:arg name="y" default="0.0"/>
+  <xacro:arg name="z" default="0.2"/>
+
+  <xacro:include filename="$(find drone_description)/urdf/quadrotor_macro.xacro"/>
+
+  <xacro:quadrotor
+    drone_name="$(arg drone_name)"
+    x="$(arg x)"
+    y="$(arg y)"
+    z="$(arg z)"/>
+
+</robot>
